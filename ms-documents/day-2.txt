@@ -1,0 +1,13 @@
+main module are completed like frontends  incompleted in the frontend
+--> tasks--> complete button is not working
+	--> alaram sount is not working
+--> Academics-->alaram stoping
+              --> point is not working 
+-->quests--> no quest generation
+--> ranking system ,points system,leveling system
+
+
+
+prompt---
+>
+in this quest module they are three type 1. daily quest - simple tasks 2. weekly quest - intermediate 3. monthly quest - difficult all are generates dynamicall and add points each quest per day only one quest with these physical,mental,financial  and in the weekly one one this week physical eg learn hand stand or learn kicks in mma, next week mentally eg read the book the 48 laws of power book and write the summary next week financially  eg learn a skill and make a project on that like that in the montly it on youur imagination

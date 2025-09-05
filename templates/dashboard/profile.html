@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{{ session.get('username', 'Player') }} — Profile</title>
+
+  <style>
+    :root {
+      --bg: #050615;
+      --panel: #0f1630;
+      --card: #0a1224;
+      --accent: #00d0ff;
+      --muted: #9fb2c4;
+      --alert: #ff8fa3;
+      --font-primary: 'Inter', "Segoe UI", Roboto, sans-serif;
+      --radius-xl: 12px;
+      --glass: rgba(255,255,255,0.03);
+    }
+
+    * { box-sizing: border-box; }
+    body, html {
+      margin: 0; padding: 0;
+      height: 100%; width: 100%;
+      font-family: var(--font-primary);
+      background: var(--bg);
+      color: var(--accent);
+      display: flex;
+    }
+
+    /* sidebar nav */
+    .sidebar {
+      width: 220px;
+      background: var(--panel);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+      gap: 12px;
+    }
+    .logo { font-size: 20px; font-weight: 700; text-align: center; color: var(--accent); }
+    .nav { display:flex; flex-direction:column; gap:10px; margin-top:10px; }
+    .nav a { text-decoration:none; color:var(--accent); padding:8px; border-radius:10px; font-weight:600; }
+    .nav a.active { background: linear-gradient(90deg, rgba(0,208,255,0.08), rgba(0,208,255,0.02)); box-shadow: inset 0 0 12px rgba(0,208,255,0.03); }
+    .logout button {
+      padding: 10px 12px; border: none; border-radius: 10px; background: var(--alert);
+      color: #fff; cursor: pointer; font-weight: 600;
+    }
+
+    /* main column */
+    .main {
+      flex: 1;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-height: 100vh;
+    }
+
+    .header-row { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    h1 { margin:0; color:var(--accent); font-size:22px; }
+    .points-badge {
+      background: var(--card);
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-weight:700;
+      color: var(--accent);
+    }
+
+    /* profile card */
+    .profile-card {
+      display: flex;
+      gap: 18px;
+      background: var(--panel);
+      padding: 18px;
+      border-radius: var(--radius-xl);
+      align-items: center;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    }
+    .edit-btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #000;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.edit-btn:hover {
+  background: #00f0ff;
+  box-shadow: 0 0 10px #00d0ff;
+}
+
+    .profile-photo {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background-image: url("{{ url_for('static', filename='uploads/' ~ (user.profile_pic or 'default-avatar.png')) }}");
+  background-size: cover;
+  background-position: center;
+}
+
+
+    .profile-info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .profile-info h2 { margin: 0; color: var(--accent); font-size: 20px; }
+    .profile-info p { margin: 0; color: var(--muted); }
+    .level-points {
+      background: var(--card);
+      padding: 6px 12px;
+      border-radius: var(--radius-xl);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    /* quote + status */
+    .middle-row {
+      display: flex;
+      gap: 18px;
+    }
+    .quote, .status {
+      flex: 1;
+      background: var(--panel);
+      padding: 16px;
+      border-radius: var(--radius-xl);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .quote::before { content: "❝ "; color: var(--accent); font-size: 18px; }
+
+    /* radar + points */
+    .bottom-row {
+      display: flex;
+      gap: 18px;
+    }
+    .points {
+      width: 200px;
+      background: var(--panel);
+      padding: 16px;
+      border-radius: var(--radius-xl);
+      text-align: center;
+      font-weight: 600;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    }
+    .radar {
+      flex: 1;
+      background: var(--panel);
+      padding: 16px;
+      border-radius: var(--radius-xl);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    }
+    canvas {
+  width: 100% !important;
+  height: 400px !important;  
+  max-width: 600px;          
+  margin: auto;
+}
+
+
+    /* small responsive */
+    @media (max-width:900px) {
+      .sidebar { display:none; }
+      .middle-row, .bottom-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div>
+      <div class="logo">Sam AI</div>
+      <nav class="nav">
+        <a class="active" href="{{ url_for('profile') }}">Profile</a>
+        <a href="{{ url_for('tasks_page') }}">Tasks</a>
+        <a href="{{ url_for('academics') }}">Academics</a>
+       <a href="{{ url_for('quests_page') }}">Quests</a>
+
+        <a href="{{ url_for('developers') }}">Developers</a>
+
+      </nav>
+      
+
+    </div>
+    <div>
+      <form action="{{ url_for('logout') }}" method="post">
+        <button type="submit">Logout</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="main">
+    
+    
+
+    <!-- profile card -->
+    <div class="profile-card">
+      <div class="profile-photo"></div>
+      <div class="profile-info">
+        <h2>{{ user.username }}</h2>
+        <p><strong>Rank:</strong> {{ rank }}</p>
+<p><strong>Level:</strong> {{ level }}</p>
+
+
+        <div class="level-points"> {{ user.points }} XP</div>
+      </div>
+    </div>
+<div class="header-row">
+  <h1>Player Profile</h1>
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <div class="points-badge">Points: {{ user.points or 0 }}</div>
+    <a href="{{ url_for('edit_profile') }}">
+      <button class="edit-btn">Edit Profile</button>
+    </a>
+  </div>
+</div>
+
+    <!-- middle row -->
+    <div class="middle-row">
+      <div class="quote">{{ user.quote|default("Your motivational quote will appear here.") }}</div>
+      <div class="status">Active Status: {{ user.status|default("Online") }}</div>
+    </div>
+
+    <!-- bottom row -->
+    <div class="bottom-row">
+      <div class="points">Total Points: {{ user.points }}</div>
+      <div class="radar"><canvas id="radarChart"></canvas></div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Floating Voice Button -->
+<button id="micBtn" style="
+  position: fixed; bottom: 20px; right: 20px; 
+  width: 60px; height: 60px; border-radius: 50%;
+  background: #00d0ff; color: #050615; font-size: 28px;
+  border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+  🎤
+</button>
+
+<!-- Voice Assistant Feedback -->
+<div id="voiceResponse" style="
+  position: fixed; bottom: 100px; right: 20px;
+  background: #0f1630; color: #00d0ff;
+  padding: 12px 16px; border-radius: 12px; 
+  display: none; max-width: 280px;">
+</div>
+
+ <script>
+  const userStats = {{ stats | tojson }};
+
+  const ctx = document.getElementById('radarChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: ['Strength', 'Finance', 'Wisdom', 'Growth', 'Mental'],
+      datasets: [{
+        label: 'Player Stats',
+        data: [
+          userStats.strength,
+          userStats.finance,
+          userStats.wisdom,
+          userStats.growth,
+          userStats.mental
+        ],
+        backgroundColor: 'rgba(0,208,255,0.15)',
+        borderColor: '#00d0ff',
+        borderWidth: 2,
+        pointBackgroundColor: '#00d0ff',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: '#00d0ff',
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          angleLines: { color: '#1a1a2e' },
+          grid: { color: '#0f3460' },
+          pointLabels: { color: '#00d0ff', font: { size: 14, weight: 'bold' } },
+          ticks: { display: false, beginAtZero: true }
+        }
+      }
+    }
+  });
+</script>
+
+  <script src="{{ url_for('static', filename='js/voice_assistant.js') }}"></script>
+
+</body>
+</html>

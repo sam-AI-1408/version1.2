@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAM AI — Landing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050615;
+      --panel: #0f1630;
+      --card: #0a1224;
+      --glass: rgba(255,255,255,0.03);
+      --accent: #00d0ff;
+      --muted: #9fb2c4;
+      --alert: #ff8fa3;
+      --font-primary: 'Inter', "Segoe UI", Roboto, sans-serif;
+      --font-size-base: 16px;
+      --radius-xl: 14px;
+    }
+
+    body, html {
+      margin: 0; padding: 0;
+      height: 100%; width: 100%;
+      font-family: var(--font-primary);
+      background: var(--bg);
+      color: var(--accent);
+      display: flex; justify-content: center; align-items: center;
+      overflow: hidden;
+    }
+
+    .container {
+      background: var(--panel);
+      padding: 30px 40px;
+      border-radius: var(--radius-xl);
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      max-width: 600px;
+    }
+
+    .dialogue {
+      font-size: var(--font-size-base);
+      margin-bottom: 20px;
+      min-height: 50px;
+    }
+
+    .popup {
+      display: none;
+      background: var(--card);
+      padding: 20px;
+      border-radius: var(--radius-xl);
+      margin-top: 20px;
+    }
+
+    .popup button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius-xl);
+      cursor: pointer;
+    }
+
+    .yes-btn { background: var(--accent); color: #001; }
+    .no-btn { background: var(--alert); color: #001; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="dialogue" id="dialogue"></div>
+    <div class="popup" id="popup">
+      <p>Are you accepted as a player?</p>
+      <button class="yes-btn" id="yesBtn">Yes</button>
+      <button class="no-btn" id="noBtn">No</button>
+    </div>
+  </div>
+
+  <script>
+    const dialogueText = "In the full of idiosyncratic world, you are chosen to be a player. Use this system and arise.";
+    const dialogueElement = document.getElementById("dialogue");
+    const popup = document.getElementById("popup");
+    let index = 0;
+
+    // Typing effect
+    function typeDialogue() {
+      if (index < dialogueText.length) {
+        dialogueElement.innerHTML += dialogueText[index];
+        index++;
+        setTimeout(typeDialogue, 85); // adjust speed here
+      } else {
+        // Show popup after dialogue
+        popup.style.display = "block";
+      }
+    }
+
+    typeDialogue();
+
+    // Button actions
+    document.getElementById("yesBtn").addEventListener("click", () => {
+      window.location.href = "/register"; // ✅ Go to Flask register route
+    });
+
+    document.getElementById("noBtn").addEventListener("click", () => {
+      dialogueElement.innerHTML = "You chose not to play. The system will close.";
+      popup.style.display = "none";
+      setTimeout(() => {
+        window.close(); // attempts to close window
+      }, 3000);
+    });
+  </script>
+</body>
+</html>

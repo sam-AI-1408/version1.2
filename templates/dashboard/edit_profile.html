@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Profile</title>
+  <style>
+    body {
+      background: #0a0c14;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #11182f;
+      border-radius: 12px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: none;
+    }
+    button {
+      background: #00e5ff;
+      color: #000;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+    img {
+      border-radius: 50%;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Edit Profile</h2>
+    <form action="{{ url_for('edit_profile') }}" method="POST" enctype="multipart/form-data">
+      <label>Profile Picture</label><br>
+      <img src="{{ url_for('static', filename='uploads/' ~ (user.profile_pic or 'default-avatar.png')) }}" width="100" height="100">
+      <input type="file" name="profile_pic">
+
+      <label>Username</label>
+      <input type="text" name="username" value="{{ user.username }}">
+
+      <label>Quote</label>
+      <textarea name="quote">{{ user.quote }}</textarea>
+
+      <button type="submit">Save Changes</button>
+
+      
+    </form>
+
+    <h3>Personal Details</h3>
+<form method="POST" enctype="multipart/form-data">
+  <label>Age:</label>
+  <input type="number" name="age" value="{{ user.age or '' }}" />
+
+  <label>Height (cm):</label>
+  <input type="number" name="height_cm" value="{{ user.height_cm or '' }}" />
+
+  <label>Weight (kg):</label>
+  <input type="number" name="weight_kg" value="{{ user.weight_kg or '' }}" />
+
+  <label>Fitness Level:</label>
+  <select name="fitness_level">
+    <option value="Beginner" {% if user.fitness_level=='Beginner' %}selected{% endif %}>Beginner</option>
+    <option value="Intermediate" {% if user.fitness_level=='Intermediate' %}selected{% endif %}>Intermediate</option>
+    <option value="Advanced" {% if user.fitness_level=='Advanced' %}selected{% endif %}>Advanced</option>
+  </select>
+
+  <button type="submit">Save</button>
+</form>
+
+  </div>
+  <!-- Floating Voice Button -->
+<button id="micBtn" style="
+  position: fixed; bottom: 20px; right: 20px; 
+  width: 60px; height: 60px; border-radius: 50%;
+  background: #00d0ff; color: #050615; font-size: 28px;
+  border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+  🎤
+</button>
+
+<!-- Voice Assistant Feedback -->
+<div id="voiceResponse" style="
+  position: fixed; bottom: 100px; right: 20px;
+  background: #0f1630; color: #00d0ff;
+  padding: 12px 16px; border-radius: 12px; 
+  display: none; max-width: 280px;">
+</div>
+
+</body>
+</html>

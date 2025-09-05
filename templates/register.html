@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAM AI — Register</title>
+  <style>
+    :root{
+      --bg:#050615; --panel:#0f1630; --accent:#00d0ff; --muted:#9fb2c4;
+      --card:#0a1224; --glass: rgba(255,255,255,0.03); --radius:14px;
+    }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(180deg,#030414 0%, #071028 100%);
+      color: #dff7ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .register-box {
+      background: var(--panel);
+      padding: 24px;
+      border-radius: var(--radius);
+      width: 360px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+    h2 {
+      color: var(--accent);
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: var(--card);
+      color: #dff7ff;
+      margin-top: 6px;
+      font-size: 14px;
+    }
+    button {
+      width: 100%;
+      margin-top: 18px;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(90deg,var(--accent),#4fe6ff);
+      color: #001;
+      font-weight: 700;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="register-box">
+    <h2>Create Account</h2>
+    <form action="/register" method="POST" enctype="multipart/form-data">
+      <label>Username</label>
+      <input type="text" name="username" required>
+
+      <label>Password</label>
+      <input type="password" name="password" required>
+
+      <label>Profile Photo</label>
+      <input type="file" name="profile_pic" accept="image/*" required>
+
+      <label>Your Motivational Quote</label>
+      <textarea name="quote" rows="3" required></textarea>
+
+      <button type="submit">Register</button>
+      <div class="extra-links">
+  <p>Already have an account? <a href="/login">Login</a></p>
+</div>
+
+    </form>
+  </div>
+</body>
+</html>

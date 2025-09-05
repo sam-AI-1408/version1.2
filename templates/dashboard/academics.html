@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>{{ session.get('username', 'Player') }} — Academics</title>
+
+  <style>
+    :root {
+      --bg: #050615;
+      --panel: #0f1630;
+      --card: #0a1224;
+      --accent: #00d0ff;
+      --muted: #9fb2c4;
+      --alert: #ff8fa3;
+      --font-primary: 'Inter', "Segoe UI", Roboto, sans-serif;
+      --radius-xl: 12px;
+      --glass: rgba(255,255,255,0.03);
+    }
+
+    * { box-sizing: border-box; }
+    body, html {
+      margin: 0; padding: 0;
+      height: 100%; width: 100%;
+      font-family: var(--font-primary);
+      background: var(--bg);
+      color: var(--accent);
+      display: flex;
+    }
+
+    /* sidebar nav */
+    .sidebar {
+      width: 220px;
+      background: var(--panel);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+      gap: 12px;
+    }
+    .logo { font-size: 20px; font-weight: 700; text-align: center; color: var(--accent); }
+    .nav { display:flex; flex-direction:column; gap:10px; margin-top:10px; }
+    .nav a { text-decoration:none; color:var(--accent); padding:8px; border-radius:10px; font-weight:600; }
+    .nav a.active { background: linear-gradient(90deg, rgba(0,208,255,0.08), rgba(0,208,255,0.02)); box-shadow: inset 0 0 12px rgba(0,208,255,0.03); }
+    .logout button {
+      padding: 10px 12px; border: none; border-radius: 10px; background: var(--alert);
+      color: #fff; cursor: pointer; font-weight: 600;
+    }
+
+    /* main column */
+    .main {
+      flex: 1;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-height: 100vh;
+    }
+
+    .header-row { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    h1 { margin:0; color:var(--accent); font-size:22px; }
+    .points-badge {
+      background: var(--card);
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-weight:700;
+      color: var(--accent);
+    }
+
+    /* form area */
+    .board {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .left-card, .right-card {
+      background: var(--panel);
+      padding: 16px;
+      border-radius: var(--radius-xl);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    }
+
+    .left-card h3, .right-card h3 { margin-top:0; color:var(--accent); }
+
+    .form-row { display:flex; gap:10px; align-items:center; margin-top:8px; }
+    .form-row input, .form-row select, textarea {
+      padding:10px; border-radius:10px; border:none; background:var(--card); color:var(--accent); outline:none; width:100%;
+    }
+    textarea { min-height:86px; resize:vertical; }
+
+    .btn {
+      padding:10px 12px; border-radius:10px; border:none; background:var(--accent); color:#001; cursor:pointer; font-weight:700;
+    }
+
+    /* completed sessions */
+    .completed-list { margin-top:10px; max-height:380px; overflow:auto; display:flex; flex-direction:column; gap:8px; }
+    .session-item {
+      display:flex; justify-content:space-between; gap:12px; align-items:center;
+      background: var(--card); padding:12px; border-radius:10px; color:var(--muted);
+    }
+    .session-item .meta { font-size:13px; color:var(--muted); }
+
+    /* popups / modals */
+    .overlay {
+      position: fixed; inset: 0; display: none; background: rgba(0,0,0,0.7); z-index:1200; justify-content:center; align-items:center;
+    }
+    .overlay.show { display:flex; }
+    .modal {
+      width: 420px; max-width: calc(100% - 40px);
+      background: var(--panel); border-radius:12px; padding:18px; box-shadow: 0 0 40px rgba(0,0,0,0.7);
+      border: 1px solid rgba(0,208,255,0.06);
+    }
+    .modal h4 { margin:0; color:var(--accent); }
+    .modal .controls { margin-top:12px; display:flex; gap:10px; justify-content:center; }
+    .modal input, .modal select, .modal textarea {
+      width:100%; padding:10px; margin-top:10px; border-radius:8px; border:none; background:var(--card); color:var(--accent);
+    }
+    .timer-display {
+      font-size:28px; text-align:center; margin-top:12px; color:var(--neon, var(--accent)); letter-spacing:1px;
+    }
+    .small { font-size:13px; color:var(--muted); }
+
+    /* small responsive */
+    @media (max-width:900px) {
+      .board { grid-template-columns: 1fr; }
+      .sidebar { display:none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div>
+      <div class="logo">Sam AI</div>
+      <nav class="nav">
+        <a href="{{ url_for('profile') }}">Profile</a>
+        <a href="{{ url_for('tasks_page') }}">Tasks</a>
+        <a href="{{ url_for('academics') }}">Academics</a>
+          <a href="{{ url_for('quests_page') }}">Quests</a>
+
+          <a href="{{ url_for('developers') }}">Developers</a>
+
+      </nav>
+    </div>
+
+    <div>
+      <form action="{{ url_for('logout') }}" method="post">
+        <button type="submit">Logout</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="header-row">
+      <h1>Academics — Study Sessions</h1>
+ <div class="points-badge">Points: <span id="points">{{ user.points or 0 }}</span></div>
+
+    </div>
+
+    <div class="board">
+      <!-- left: Add & list -->
+      <div class="left-card">
+        <h3>Add session</h3>
+        <p class="small">Click Add session to open the multi-step popup (hours → date → notes).</p>
+        <div style="margin-top:12px;">
+          <button class="btn" id="openAdd">➕ Add session</button>
+        </div>
+
+        <h3 style="margin-top:18px;">Completed sessions</h3>
+        <div class="completed-list" id="completedList">
+          <!-- completed sessions rendered here -->
+        </div>
+      </div>
+
+      <!-- right: Quick past sessions / details -->
+      <div class="right-card">
+        <h3>Session preview & info</h3>
+        <div class="small">When a session completes, confirm it and points will be awarded & stored.</div>
+
+        <div style="margin-top:12px;">
+          <div class="small">Active scheduled sessions:</div>
+          <ul id="scheduledOverview" style="margin:8px 0 0 0; padding:0; list-style:none;"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUDIO -->
+  <audio id="alarmSound" src="{{ url_for('static', filename='alarm-301729.mp3') }}" preload="auto"></audio>
+
+  <!-- MODALS -->
+
+  <!-- Step 1: Duration (hours/minutes) -->
+  <div class="overlay" id="stepDuration">
+    <div class="modal">
+      <h4>Step 1 — Duration</h4>
+      <div class="small">Enter how long the session will be.</div>
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <input id="inputHours" type="number" min="0" placeholder="Hours (0)" />
+        <input id="inputMinutes" type="number" min="0" max="59" placeholder="Minutes (30)" />
+      </div>
+      <div class="controls" style="margin-top:12px;">
+        <button class="btn cancel" id="durCancel">Cancel</button>
+        <button class="btn" id="durNext">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Start datetime -->
+  <div class="overlay" id="stepSchedule">
+    <div class="modal">
+      <h4>Step 2 — Schedule start</h4>
+      <div class="small">Pick a date & time for the session to start (or leave as now).</div>
+      <input id="inputStartAt" type="datetime-local" />
+      <div class="controls">
+        <button class="btn cancel" id="schBack">Back</button>
+        <button class="btn" id="schNext">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Notes -->
+  <div class="overlay" id="stepNotes">
+    <div class="modal">
+      <h4>Step 3 — What did you study?</h4>
+      <div class="small">Write notes or topics you will cover (shown after completion).</div>
+      <textarea id="inputNotes" placeholder="What will you study?"></textarea>
+      <div class="controls">
+        <button class="btn cancel" id="notesBack">Back</button>
+        <button class="btn" id="startSession">Start Session</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timer Modal -->
+  <div class="overlay" id="timerModal">
+    <div class="modal">
+      <h4>Session Timer</h4>
+      <div class="small" id="timerSessionMeta"></div>
+      <div class="timer-display" id="timerDisplay">00:00:00</div>
+      <div class="controls" style="margin-top:12px;">
+        <button class="btn cancel" id="cancelTimer">❌ Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Completion popup -->
+  <div class="overlay" id="completionModal">
+    <div class="modal">
+      <h4>Session finished — Completed?</h4>
+      <div class="small" id="completionMeta"></div>
+      <div style="margin-top:12px; display:flex; gap:10px; justify-content:center;">
+        <button class="btn" id="markYes">✅ Yes — Save & Award Points</button>
+        <button class="btn cancel" id="markNo">❌ No — Discard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Voice Assistant Button -->
+<!-- Floating Voice Button -->
+<button id="micBtn" style="
+  position: fixed; bottom: 20px; right: 20px; 
+  width: 60px; height: 60px; border-radius: 50%;
+  background: #00d0ff; color: #050615; font-size: 28px;
+  border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+  🎤
+</button>
+
+
+
+<p id="voice-feedback" style="
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    background: var(--panel);
+    color: var(--accent);
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 14px;
+    max-width: 200px;
+"></p>
+
+<script>
+  // ---------- config ----------
+  const addBtn = document.getElementById('openAdd');
+  const pointsEl = document.getElementById('points');
+  const completedList = document.getElementById('completedList');
+  const scheduledOverview = document.getElementById('scheduledOverview');
+
+  // State for session in progress
+  let state = {
+    hours: 0,
+    minutes: 0,
+    startAt: null,
+    notes: '',
+    subject: '{{ user.username or "" }} study',
+    timerInterval: null,
+    countdownRemainingMs: 0,
+    scheduledTimeoutId: null,
+    activeSessionId: null
+  };
+
+  // ---------- UI helpers ----------
+  function showOverlay(id) { document.getElementById(id).classList.add('show'); }
+  function hideOverlay(id) { document.getElementById(id).classList.remove('show'); }
+
+  // ---------- Open flow ----------
+  addBtn.addEventListener('click', () => {
+    state.hours = 0; state.minutes = 30; state.startAt = null; state.notes = '';
+    document.getElementById('inputHours').value = '';
+    document.getElementById('inputMinutes').value = '';
+    const now = new Date();
+    const localISO = new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,16);
+    document.getElementById('inputStartAt').value = localISO;
+    document.getElementById('inputNotes').value = '';
+    showOverlay('stepDuration');
+  });
+
+  // Step 1 controls
+  document.getElementById('durCancel').onclick = () => hideOverlay('stepDuration');
+  document.getElementById('durNext').onclick = () => {
+    const h = parseInt(document.getElementById('inputHours').value || 0);
+    const m = parseInt(document.getElementById('inputMinutes').value || 0);
+    if (h === 0 && m === 0) { alert('Set duration (hours or minutes).'); return; }
+    state.hours = Math.max(0,h); state.minutes = Math.max(0,m);
+    hideOverlay('stepDuration'); showOverlay('stepSchedule');
+  };
+
+  // Step 2 controls
+  document.getElementById('schBack').onclick = () => { hideOverlay('stepSchedule'); showOverlay('stepDuration'); };
+  document.getElementById('schNext').onclick = () => {
+    const val = document.getElementById('inputStartAt').value;
+    state.startAt = val ? new Date(val) : new Date();
+    hideOverlay('stepSchedule'); showOverlay('stepNotes');
+  };
+
+  // Step 3 controls
+  document.getElementById('notesBack').onclick = () => { hideOverlay('stepNotes'); showOverlay('stepSchedule'); };
+  document.getElementById('startSession').onclick = () => {
+    state.notes = document.getElementById('inputNotes').value || '';
+    hideOverlay('stepNotes');
+    scheduleOrStartSession();
+  };
+
+  // ---------- scheduling & timer ----------
+  function scheduleOrStartSession() {
+    const durationMs = ((state.hours * 60) + state.minutes) * 60 * 1000;
+    if (!state.startAt) state.startAt = new Date();
+    const now = new Date();
+
+    if (state.startAt.getTime() > now.getTime()) {
+      const waitMs = state.startAt.getTime() - now.getTime();
+      const li = document.createElement('li');
+      li.textContent = `${state.startAt.toLocaleString()} • ${state.hours}h ${state.minutes}m`;
+      scheduledOverview.appendChild(li);
+
+      state.scheduledTimeoutId = setTimeout(() => {
+        if (li.parentNode) li.parentNode.removeChild(li);
+        startCountdown(durationMs);
+      }, waitMs);
+
+      alert('Session scheduled. It will start at the selected time (tab must be open).');
+    } else {
+      startCountdown(durationMs);
+    }
+  }
+
+  function startCountdown(durationMs) {
+    state.countdownRemainingMs = durationMs;
+    document.getElementById('timerSessionMeta').textContent = `${state.hours} h ${state.minutes} m — Notes: ${state.notes || '—'}`;
+    showOverlay('timerModal');
+    updateTimerDisplay();
+
+    state.timerInterval = setInterval(() => {
+      state.countdownRemainingMs -= 1000;
+      if (state.countdownRemainingMs <= 0) {
+        clearInterval(state.timerInterval);
+        state.timerInterval = null;
+        hideOverlay('timerModal');
+        onTimerEnded();
+      } else {
+        updateTimerDisplay();
+      }
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    const ms = Math.max(0, state.countdownRemainingMs);
+    const totalSec = Math.floor(ms / 1000);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    document.getElementById('timerDisplay').textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+
+  document.getElementById('cancelTimer').onclick = () => {
+    if (state.timerInterval) clearInterval(state.timerInterval);
+    if (state.scheduledTimeoutId) clearTimeout(state.scheduledTimeoutId);
+    state.timerInterval = state.scheduledTimeoutId = null;
+    hideOverlay('timerModal');
+    alert('Session canceled.');
+  };
+
+  // ---------- when countdown finishes ----------
+  function onTimerEnded() {
+    const audio = document.getElementById('alarmSound');
+    audio.currentTime = 0;
+    audio.play().catch(()=>{});
+    if ('Notification' in window && Notification.permission !== 'granted') Notification.requestPermission();
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('Session finished', { body: `Session: ${state.hours}h ${state.minutes}m` });
+    }
+    document.getElementById('completionMeta').textContent = `Session length: ${state.hours}h ${state.minutes}m — Notes: ${state.notes || '—'}`;
+    showOverlay('completionModal');
+  }
+
+  // completion modal buttons
+  document.getElementById('markNo').onclick = () => { hideOverlay('completionModal'); alert('Session discarded (no points awarded).'); };
+
+  document.getElementById('markYes').onclick = async () => {
+    const durationMinutes = (state.hours * 60) + state.minutes;
+    const form = new FormData();
+    form.append('subject', 'Study Session');
+    form.append('duration', durationMinutes);
+    form.append('notes', state.notes || '');
+    form.append('started_at', (state.startAt || new Date()).toISOString());
+    form.append('ended_at', new Date().toISOString());
+
+    try {
+      await fetch('/add_study_log', { method: 'POST', body: form }).then(r => r.json());
+      await loadCompletedSessions();
+      await loadPoints(); // <-- update points dynamically
+      hideOverlay('completionModal');
+      alert('Session saved and points awarded!');
+    } catch (err) {
+      console.error(err);
+      hideOverlay('completionModal');
+      alert('Failed to save session — check server logs.');
+    }
+  };
+
+  // ---------- load completed sessions ----------
+  async function loadCompletedSessions() {
+    try {
+      const res = await fetch('/get_study_logs');
+      const logs = await res.json();
+      completedList.innerHTML = '';
+      logs.forEach(l => {
+        const el = document.createElement('div');
+        el.className = 'session-item';
+        const mins = Number(l.duration || 0);
+        el.innerHTML = `<div>
+                          <div style="color:var(--accent)"><strong>${l.subject || 'Study'}</strong> — ${Math.round(mins/60*100)/100}h</div>
+                          <div class="meta">${l.notes ? l.notes : ''} • ${l.created_at || ''}</div>
+                        </div>
+                        <div style="color:#7df9ff">✔</div>`;
+        completedList.appendChild(el);
+      });
+    } catch(e) {
+      console.error('Could not load logs', e);
+    }
+  }
+
+  // ---------- load points from backend ----------
+  async function loadPoints() {
+    try {
+      const res = await fetch('/get_user_points');
+      const data = await res.json(); // expects {points: 123}
+      pointsEl.textContent = data.points || 0;
+    } catch(e) {
+      console.error('Could not load points', e);
+    }
+  }
+
+  // ---------- init ----------
+  (async function init() {
+    await loadCompletedSessions();
+    await loadPoints();
+    if ('Notification' in window && Notification.permission !== 'granted') {
+      Notification.requestPermission().catch(()=>{});
+    }
+  })();
+</script>
+<script src="{{ url_for('static', filename='js/voice_assistant.js') }}"></script>
+
+</body>
+</html>
